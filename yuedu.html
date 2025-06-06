@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>乐队PDF 阅读器</title>
+  <link rel="icon" href="favicon.png" type="image/x-icon">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    #toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: #f0f0f0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    #pdf-container {
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      padding: 10px;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto 10px auto;
+    }
+    input[type="number"] {
+      width: 60px;
+    }
+    button {
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    #metronome-indicator {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background-color: transparent;
+      transition: all 0.1s ease;
+      margin-left: 5px;
+    }
+    .metronome-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toolbar">
+    <div id="current-filename">当前文件：</div>
+    <div id="controls">
+      <label>PDF缩放：</label>
+      <input type="number" id="zoom-input" value="1.5" step="0.1" min="0.1" max="5">
+      <button id="reset-zoom">重置缩放</button>
+
+      <label>滚动速度(ms)：</label>
+      <input type="number" id="scroll-speed" value="50" min="10" max="1000">
+      <button id="toggle-scroll">启动滚动</button>
+
+      <div class="metronome-wrapper">
+        <label>BPM：</label>
+        <input type="number" id="bpm-input" value="120" min="20" max="240">
+        <button id="metronome-toggle">开启节拍器</button>
+        <div id="metronome-indicator"></div>
+      </div>
+
+      <button onclick="window.location.href='index.html'">返回</button>
+    </div>
+  </div>
+
+  <div id="pdf-container"></div>
+
+  <script>
+    const container = document.getElementById('pdf-container');
+    const scrollBtn = document.getElementById('toggle-scroll');
+    const scrollSpeedInput = document.getElementById('scroll-speed');
+    const zoomInput = document.getElementById('zoom-input');
+    const resetZoom = document.getElementById('reset-zoom');
+    const currentFilename = document.getElementById('current-filename');
+
+    let autoScroll = false;
+    let scrollInterval = null;
+    let zoom = parseFloat(zoomInput.value);
+    let pdfDoc = null;
+
+    const params = new URLSearchParams(window.location.search);
+    const filename = params.get('file');
+    currentFilename.textContent = `当前文件：${filename}`;
+
+    scrollBtn.addEventListener('click', () => {
+      autoScroll = !autoScroll;
+      scrollBtn.textContent = autoScroll ? '停止滚动' : '启动滚动';
+
+      const speed = parseInt(scrollSpeedInput.value);
+      if (autoScroll) {
+        scrollInterval = setInterval(() => {
+          container.scrollTop += 1;
+        }, speed);
+      } else {
+        clearInterval(scrollInterval);
+      }
+    });
+
+    scrollSpeedInput.addEventListener('change', () => {
+      if (autoScroll) {
+        clearInterval(scrollInterval);
+        scrollInterval = setInterval(() => {
+          container.scrollTop += 1;
+        }, parseInt(scrollSpeedInput.value));
+      }
+    });
+
+    zoomInput.addEventListener('change', () => {
+      zoom = parseFloat(zoomInput.value);
+      if (pdfDoc) renderPDF();
+    });
+
+    resetZoom.addEventListener('click', () => {
+      zoom = 1.5;
+      zoomInput.value = zoom;
+      if (pdfDoc) renderPDF();
+    });
+
+    async function renderPDF() {
+      container.innerHTML = '';
+      pdfDoc = await pdfjsLib.getDocument('pdfs/' + filename).promise;
+      for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+        const page = await pdfDoc.getPage(pageNum);
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        const viewport = page.getViewport({ scale: zoom });
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
+        container.appendChild(canvas);
+      }
+    }
+
+    renderPDF();
+
+    // 节拍器
+    const bpmInput = document.getElementById('bpm-input');
+    const toggleBtn = document.getElementById('metronome-toggle');
+    const indicator = document.getElementById('metronome-indicator');
+
+    let metronomeOn = false;
+    let beatCount = 0;
+    let metronomeInterval = null;
+
+    function playSound(freq, duration) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      gain.gain.setValueAtTime(1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.stop(ctx.currentTime + duration);
+    }
+
+    function playBeat() {
+      if (beatCount % 4 === 0) {
+        playSound(1200, 0.1); // 叮
+        indicator.style.backgroundColor = 'red';
+        indicator.style.width = '16px';
+        indicator.style.height = '16px';
+      } else {
+        playSound(800, 0.15); // 咚
+        indicator.style.backgroundColor = '#999';
+        indicator.style.width = '12px';
+        indicator.style.height = '12px';
+      }
+      setTimeout(() => {
+        indicator.style.backgroundColor = 'transparent';
+      }, 100);
+      beatCount = (beatCount + 1) % 4;
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      metronomeOn = !metronomeOn;
+      toggleBtn.textContent = metronomeOn ? '停止节拍器' : '开启节拍器';
+      if (metronomeOn) {
+        const bpm = parseInt(bpmInput.value);
+        const interval = 60000 / bpm;
+        playBeat();
+        metronomeInterval = setInterval(playBeat, interval);
+      } else {
+        clearInterval(metronomeInterval);
+        indicator.style.backgroundColor = 'transparent';
+      }
+    });
+  </script>
+</body>
+</html>
