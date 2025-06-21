@@ -138,7 +138,7 @@
 
     async function renderPDF() {
       container.innerHTML = '';
-      pdfDoc = await pdfjsLib.getDocument('read.php?file=' + encodeURIComponent(filename)).promise;
+      pdfDoc = await pdfjsLib.getDocument('pdfs/' + filename).promise;
       for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
         const page = await pdfDoc.getPage(pageNum);
         const canvas = document.createElement('canvas');

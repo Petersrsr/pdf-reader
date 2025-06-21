@@ -5,6 +5,7 @@
   <link rel="icon" href="favicon.png" type="image/x-icon">
   <title>乐队PDF 文件管理</title>
   <style>
+    /* 全局样式 */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f9fafb;
@@ -22,6 +23,7 @@
       letter-spacing: 1.2px;
     }
 
+    /* 上传区域 */
     #upload-form {
       display: flex;
       justify-content: center;
@@ -38,7 +40,6 @@
       background: #fff;
       transition: border-color 0.3s ease;
     }
-
     #upload-form input[type="file"]:hover {
       border-color: #2980b9;
     }
@@ -53,11 +54,11 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-
     #upload-form button:hover {
       background-color: #2980b9;
     }
 
+    /* PDF列表 */
     #pdf-list {
       list-style: none;
       padding: 0;
@@ -67,7 +68,6 @@
       background: #fff;
       box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
     }
-
     #pdf-list li {
       display: flex;
       justify-content: space-between;
@@ -77,11 +77,9 @@
       font-size: 16px;
       transition: background-color 0.2s ease;
     }
-
     #pdf-list li:hover {
       background-color: #f5f8fa;
     }
-
     #pdf-list li:last-child {
       border-bottom: none;
     }
@@ -94,11 +92,11 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
     #pdf-list a:hover {
       text-decoration: underline;
     }
 
+    /* 删除按钮 */
     #pdf-list button {
       background-color: #e74c3c;
       border: none;
@@ -111,31 +109,27 @@
       margin-left: 16px;
       flex-shrink: 0;
     }
-
     #pdf-list button:hover {
       background-color: #c0392b;
     }
 
+    /* 响应式 */
     @media (max-width: 480px) {
       #upload-form {
         flex-direction: column;
         align-items: stretch;
       }
-
       #upload-form button {
         width: 100%;
       }
-
       #pdf-list li {
         flex-direction: column;
         align-items: flex-start;
       }
-
       #pdf-list button {
         margin-left: 0;
         margin-top: 8px;
       }
-
       #pdf-list a {
         white-space: normal;
       }
@@ -166,7 +160,7 @@
           const li = document.createElement('li');
 
           const a = document.createElement('a');
-          a.href = 'yuedu.html?file=' + encodeURIComponent(file); // 使用 read.php 间接访问
+          a.href = 'yuedu.html?file=' + encodeURIComponent(file);
           a.textContent = file;
           li.appendChild(a);
 
@@ -229,4 +223,5 @@
   Copyright ©2021-2025 Petersr.xyz 版权所有<br>
   备案号: <a href="https://beian.miit.gov.cn/" target="_blank" style="color: #666; text-decoration: none;">沪ICP备2025126528号-1</a>
 </footer>
+
 </html>

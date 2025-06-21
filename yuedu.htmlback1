@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>乐队PDF 阅读器</title>
   <link rel="icon" href="favicon.png" type="image/x-icon">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -58,6 +57,8 @@
       align-items: center;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/gh/justKD/KDMetronomeJS/KDMetronome.min.js"></script>
+
 </head>
 <body>
 
@@ -78,7 +79,6 @@
         <button id="metronome-toggle">开启节拍器</button>
         <div id="metronome-indicator"></div>
       </div>
-
       <button onclick="window.location.href='index.html'">返回</button>
     </div>
   </div>
